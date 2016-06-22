@@ -135,7 +135,7 @@ p = ggplot() +
   theme_dark_map(base_size = 24) +
   theme(legend.position = "none")
 
-fname = "results/taxi_pickups_map.png"
+fname = "taxi_pickups_map.png"
 png(filename = fname, width = 490, height = 759, bg = "black")
 print(p)
 add_credits(color = "#dddddd", xpos = 0.98)
@@ -158,7 +158,7 @@ p = ggplot() +
   theme_dark_map(base_size = 24) +
   theme(legend.position = "none")
 
-fname = "results/taxi_dropoffs_map.png"
+fname = "taxi_dropoffs_map.png"
 png(filename = fname, width = 490, height = 759, bg = "black")
 print(p)
 add_credits(color = "#dddddd", xpos = 0.98)
@@ -178,7 +178,7 @@ p = ggplot() +
   theme_dark_map(base_size = 72) +
   theme(legend.position = "none")
 
-fname = "results/taxi_pickups_map_hires.png"
+fname = "taxi_pickups_map_hires.png"
 png(filename = fname, width = 2880, height = 4068, bg = "black")
 print(p)
 dev.off()
@@ -197,7 +197,7 @@ p = ggplot() +
   theme_dark_map(base_size = 72) +
   theme(legend.position = "none")
 
-fname = "results/taxi_dropoffs_map_hires.png"
+fname = "taxi_dropoffs_map_hires.png"
 png(filename = fname, width = 2880, height = 4068, bg = "black")
 print(p)
 dev.off()
@@ -206,10 +206,7 @@ dev.off()
 daily_pickups_borough_type = query("
   SELECT
     *,
-    CASE type
-      WHEN 'uber' THEN boroname || type || EXTRACT(YEAR FROM date)
-      ELSE boroname || type
-    END AS group_for_monthly_total
+    boroname || type AS group_for_monthly_total
   FROM daily_pickups_by_borough_and_type
   WHERE boroname != 'New Jersey'
   ORDER BY boroname, type, date
@@ -247,7 +244,7 @@ for (b in boroughs) {
         theme_tws(base_size = 20) +
         theme(legend.position = "bottom")
 
-  png(filename = paste0("results/taxi_pickups_", to_slug(b), ".png"), width = 640, height = 420)
+  png(filename = paste0("taxi_pickups_", to_slug(b), ".png"), width = 640, height = 420)
   print(p)
   add_credits()
   dev.off()
@@ -263,7 +260,7 @@ for (b in boroughs) {
         theme_tws(base_size = 20) +
         theme(legend.position = "bottom")
 
-  png(filename = paste0("results/taxi_dropoffs_", to_slug(b), ".png"), width = 640, height = 420)
+  png(filename = paste0("taxi_dropoffs_", to_slug(b), ".png"), width = 640, height = 420)
   print(p)
   add_credits()
   dev.off()
@@ -274,8 +271,7 @@ weather = query("SELECT * FROM pickups_and_weather ORDER BY date")
 weather = weather %>%
   mutate(precip_bucket = cut(precipitation, breaks = c(0, 0.0001, 0.2, 0.4, 0.6, 6), right = FALSE),
          snow_bucket = cut(snowfall, breaks = c(0, 0.0001, 2, 4, 6, 13), right = FALSE),
-         taxi_week_avg = rollmean(taxi, k = 7, na.pad = TRUE, align = "right"),
-         uber_week_avg = rollmean(uber, k = 7, na.pad = TRUE, align = "right"))
+         taxi_week_avg = rollmean(taxi, k = 7, na.pad = TRUE, align = "right"))
 
 precip = weather %>%
   group_by(precip_bucket) %>%
@@ -299,12 +295,12 @@ p2 = ggplot(data = snowfall, aes(x = snow_bucket, y = taxi)) +
   title_with_subtitle("Snowfall vs. NYC Daily Taxi Trips", "Based on NYC TLC data 2009–2015") +
   theme_tws(base_size = 20)
 
-png(filename = "results/daily_trips_precipitation.png", width = 640, height = 420)
+png(filename = "daily_trips_precipitation.png", width = 640, height = 420)
 print(p1)
 add_credits()
 dev.off()
 
-png(filename = "results/daily_trips_snowfall.png", width = 640, height = 420)
+png(filename = "daily_trips_snowfall.png", width = 640, height = 420)
 print(p2)
 add_credits()
 dev.off()
@@ -324,7 +320,7 @@ northside = query("
 northside = northside %>%
   mutate(monthly = rollsum(pickups, k = 28, na.pad = TRUE, align = "right"))
 
-png(filename = "results/northside_williamsburg_pickups.png", width = 640, height = 420)
+png(filename = "northside_williamsburg_pickups.png", width = 640, height = 420)
 ggplot(data = northside, aes(x = date, y = monthly)) +
   geom_line(size = 1) +
   scale_x_date("") +
@@ -367,14 +363,14 @@ for (months in periods) {
     title_with_subtitle(months[3], "Taxi pickups in Northside Williamsburg") +
     theme_tws_map(base_size = 20)
 
-  png(filename = paste0("results/northside/northside_", months[1], ".png"), bg = "#f4f4f4", width = 480, height = 550)
+  png(filename = paste0("northside_", months[1], ".png"), bg = "#f4f4f4", width = 480, height = 550)
   print(p)
   add_credits()
   dev.off()
 }
 
 # convert to animated gif with ImageMagick
-# convert -delay 50 -loop 0 results/northside/northside_20*-01-01.png animation.gif
+# convert -delay 50 -loop 0 northside_20*-01-01.png animation.gif
 
 # cash vs. credit
 payments = query("
@@ -420,7 +416,7 @@ payments_split = query("
   ORDER BY month, total_amount_bucket
 ")
 
-png(filename = "results/cash_vs_credit.png", width = 640, height = 420)
+png(filename = "cash_vs_credit.png", width = 640, height = 420)
 ggplot(data = payments, aes(x = month, y = frac_credit)) +
   geom_line(size = 1) +
   scale_y_continuous("% paying with credit card\n", labels = percent) +
@@ -434,7 +430,7 @@ dev.off()
 payments_split = payments_split %>%
   mutate(total_amount_bucket = factor(total_amount_bucket, labels = c("$0–$10  ", "$10–$20  ", "$20–$30  ", "$30–$40  ")))
 
-png(filename = "results/cash_vs_credit_split.png", width = 640, height = 420)
+png(filename = "cash_vs_credit_split.png", width = 640, height = 420)
 ggplot(data = payments_split, aes(x = month, y = frac_credit, color = total_amount_bucket)) +
   geom_line(size = 1) +
   scale_y_continuous("% paying with credit card\n", labels = percent) +
